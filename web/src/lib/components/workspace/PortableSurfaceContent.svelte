@@ -36,6 +36,7 @@
 
 <script lang="ts">
 	import {
+		getAppShell,
 		getChatSessions,
 		getTicketSourceNavigation,
 		getAuth,
@@ -84,6 +85,7 @@
 	const auth = getAuth();
 	const remoteSettings = getRemoteSettings();
 	const ticketSourceNavigation = getTicketSourceNavigation();
+	const appShell = getAppShell();
 	const projectState = $derived(workspaceContext.projectState);
 </script>
 
@@ -258,6 +260,7 @@
 					if (presentation === 'mobile') void workspace.showChatInCurrentWindow(chatId);
 					else void workspace.showChatInWindow(chatId, presentation);
 				}}
+				onLaunchWorkflow={(prefill) => appShell.openNewChatDialog({ prefill })}
 			/>
 		{/await}
 	{:else if surface.type === 'singleton' && surface.kind === 'chat-board'}

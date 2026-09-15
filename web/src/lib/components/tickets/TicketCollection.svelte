@@ -11,11 +11,13 @@
 		controller,
 		onOpen,
 		onStatus,
+		onImplement,
 		pinned = null,
 	}: {
 		controller: TicketsController;
 		onOpen: (ticket: TicketSummary) => void;
 		onStatus: (ticket: TicketSummary, status: TicketStatus) => void;
+		onImplement?: (ticket: TicketSummary) => void;
 		pinned?: { key: TicketWindowKey; ticket: TicketSummary } | null;
 	} = $props();
 	const collection = $derived(controller.displayedCollection);
@@ -43,6 +45,7 @@
 				pending={controller.mutations.busy(ticket.id)}
 				{onOpen}
 				{onStatus}
+				{onImplement}
 			/>
 			{#snippet failed()}<p class="ticket-notice">{m.tickets_invalid_entry()}</p>{/snippet}
 		</svelte:boundary>

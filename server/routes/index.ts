@@ -28,6 +28,7 @@ import { createNativeSessionLookupRoutes } from './native-session-lookup.js';
 import { createProjectResolutionRoutes } from './project-resolution.js';
 import { createChatBoardRoutes } from './chat-boards.js';
 import { createTicketRoutes } from './tickets.js';
+import { createTicketWorkflowRoutes } from './ticket-workflows.js';
 import { createChatTicketSourceRoutes } from './chat-ticket-source.js';
 import type { TicketSourceReader } from '../chats/chat-message-reader.js';
 import type { TicketRuntime } from '../tickets/setup.js';
@@ -178,6 +179,7 @@ export default function createAllRoutes(workspaceDir: string, {
     ...createChatTagRoutes(chatTags),
     ...createChatBoardRoutes(chatBoards),
     ...createTicketRoutes(tickets),
+    ...createTicketWorkflowRoutes(),
     ...createChatTicketSourceRoutes(registry, ticketSources),
     ...createShareRoutes(shareStore, registry, settings, metadata, shareSnapshots),
     ...createFilesRoutes(registry),

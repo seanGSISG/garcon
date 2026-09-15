@@ -3,6 +3,7 @@
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import Link2 from '@lucide/svelte/icons/link-2';
+	import Bot from '@lucide/svelte/icons/bot';
 	import TicketStatusMenu from './TicketStatusMenu.svelte';
 	import { ticketPriorityLabel, isTicketProjectPath } from './ticket-presentation.js';
 	import { ticketDraggable } from './ticket-drag.js';
@@ -15,6 +16,7 @@
 		pending = false,
 		onOpen,
 		onStatus,
+		onImplement,
 	}: {
 		ticket: TicketSummary;
 		board?: boolean;
@@ -23,7 +25,11 @@
 		pending?: boolean;
 		onOpen: (ticket: TicketSummary) => void;
 		onStatus: (ticket: TicketSummary, status: TicketStatus) => void;
+		onImplement?: (ticket: TicketSummary) => void;
 	} = $props();
+	// A closed ticket has nothing left to implement, and a claimed one already has
+	// an owner whose work this launch would duplicate.
+	const canImplement = $derived(ticket.status !== 'closed' && ticket.assignee === null);
 </script>
 
 <article
@@ -61,6 +67,19 @@
 			>{ticketPriorityLabel(ticket.priority)}</span
 		>
 		<TicketStatusMenu {ticket} disabled={pending} onStatus={(status) => onStatus(ticket, status)} />
+		{#if onImplement && canImplement}<button
+				type="button"
+				class="ticket-implement"
+				disabled={pending}
+				aria-label={m.tickets_implement({ id: ticket.id })}
+				title={m.tickets_implement({ id: ticket.id })}
+				onclick={() => onImplement(ticket)}
+				data-ticket-focus={JSON.stringify({
+					kind: 'ticket',
+					ticketId: ticket.id,
+					control: 'implement',
+				})}><Bot size={12} />{m.tickets_implement_short()}</button
+			>{/if}
 		{#if ticket.blockedByCount}<span class="ticket-indicator" title={m.tickets_blocked_by()}
 				><Link2 size={12} />{ticket.blockedByCount}</span
 			>{/if}

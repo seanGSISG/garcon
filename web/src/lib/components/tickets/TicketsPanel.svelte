@@ -16,8 +16,13 @@
 	import TicketCloseDialog from './TicketCloseDialog.svelte';
 	import TicketRecovery from './TicketRecovery.svelte';
 	import TicketMutationErrors from './TicketMutationErrors.svelte';
+	import { ticketsApi } from '$lib/api/tickets.js';
+	import { fetchTicketWorkflow } from '$lib/api/ticket-workflows.js';
+	import { renderTicketAgentBrief } from '$shared/ticket-workflows';
 	import * as m from '$lib/paraglide/messages.js';
 	import './tickets.css';
+
+	const IMPLEMENT_WORKFLOW = 'implement';
 	let {
 		controller,
 		visible,
@@ -26,6 +31,7 @@
 		directory,
 		onOpenChat,
 		onOpenSource,
+		onLaunchWorkflow,
 		onClose,
 		closeDisabled = false,
 		pinnedProjectPaths = [],
@@ -37,6 +43,9 @@
 		directory: string | null;
 		onOpenChat: (id: string) => void;
 		onOpenSource: (source: TicketSource) => void;
+		// Hands a rendered launch prompt to the host, which seeds a new chat with
+		// it. Omitting the callback hides the implement action entirely.
+		onLaunchWorkflow?: (prompt: string) => void;
 		onClose?: () => void;
 		closeDisabled?: boolean;
 		pinnedProjectPaths?: string[];
@@ -53,9 +62,12 @@
 	});
 	const memory = panel.memory;
 	let announcement = $state('');
+	let launchError = $state<string | null>(null);
 	const hasDetail = $derived(controller.detail.selectedId !== null);
 	const refreshError = $derived(
-		controller.error ?? (controller.stale && !controller.loading ? m.tickets_stale() : null),
+		launchError ??
+			controller.error ??
+			(controller.stale && !controller.loading ? m.tickets_stale() : null),
 	);
 	const detailError = $derived(controller.detail.error ?? refreshError);
 	const allItems = $derived(
@@ -74,6 +86,39 @@
 		await tick();
 		if (root && (root.clientWidth < 900 || controller.detailFullWidth))
 			root.querySelector<HTMLElement>('.ticket-detail-title')?.focus();
+	}
+	// Builds the launch prompt from the ticket's full record rather than its list
+	// summary, which omits the description the agent needs.
+	async function implement(ticket: TicketSummary) {
+		if (!onLaunchWorkflow) return;
+		launchError = null;
+		try {
+			const detail = await ticketsApi.read({ ticketId: ticket.id, includeDescription: true });
+			const { workflow, references } = await fetchTicketWorkflow(
+				IMPLEMENT_WORKFLOW,
+				detail.ticket.project,
+			);
+			onLaunchWorkflow(
+				renderTicketAgentBrief({
+					workflow,
+					references,
+					blockedBy: detail.links
+						.filter((link) => link.kind === 'blocks' && link.targetId === detail.ticket.id)
+						.map((link) => link.sourceId),
+					ticket: {
+						id: detail.ticket.id,
+						title: detail.ticket.title,
+						project: detail.ticket.project,
+						description: detail.ticket.description,
+						priority: detail.ticket.priority,
+						labels: detail.ticket.labels,
+						revision: detail.ticket.revision,
+					},
+				}),
+			);
+		} catch {
+			launchError = m.tickets_implement_failed();
+		}
 	}
 	async function back() {
 		controller.select(null);
@@ -241,6 +286,7 @@
 					pinned={panel.pinned}
 					onOpen={(ticket) => void open(ticket)}
 					onStatus={(ticket, next) => void status(ticket, next)}
+					onImplement={onLaunchWorkflow ? (ticket) => void implement(ticket) : undefined}
 				/>
 			</div>
 		</div>

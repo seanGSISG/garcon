@@ -31,6 +31,7 @@
   "scripts": {
     "setup": "bun scripts/setup.js",
     "build": "bun scripts/build-web.js",
+    "build:workflows": "bun scripts/build-bundled-workflows.js",
     "build-exe:compile": "bun scripts/build-exe.js",
     "build-exe:smoke": "bun scripts/smoke-exe.js",
     "build-exe:smoke:linux-x64": "bun scripts/smoke-exe.js --target=linux-x64",

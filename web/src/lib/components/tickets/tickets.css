@@ -386,6 +386,25 @@ textarea.ticket-input {
 	align-items: center;
 	color: hsl(var(--muted-foreground));
 }
+.ticket-implement {
+	display: inline-flex;
+	gap: 3px;
+	align-items: center;
+	padding: 1px 6px;
+	border: 1px solid hsl(var(--border));
+	border-radius: 4px;
+	color: hsl(var(--muted-foreground));
+	background: transparent;
+	cursor: pointer;
+}
+.ticket-implement:hover:not(:disabled) {
+	color: hsl(var(--foreground));
+	border-color: hsl(var(--ring));
+}
+.ticket-implement:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
 .ticket-board {
 	display: flex;
 	gap: 12px;
